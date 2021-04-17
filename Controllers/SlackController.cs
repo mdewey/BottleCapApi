@@ -106,7 +106,20 @@ namespace BottleCapApi.Controllers
       }
       else
       {
-        var players = new List<Player>();
+        var players = new List<Player>{
+            new Player{
+                BottleCaps= new Random().Next(0,10),
+                SlackId = "Tim  1"
+            },
+            new Player{
+                BottleCaps= new Random().Next(0,10),
+                SlackId = "Tim  2"
+            },
+            new Player{
+                BottleCaps= new Random().Next(0,10),
+                SlackId = "Tim  3"
+            }
+        };
         var response = new
         {
           blocks = new List<Object>{
@@ -139,7 +152,11 @@ namespace BottleCapApi.Controllers
 
     }
 
+
+
+
     // create GM 
+
     // Add player to as DM 
 
 

@@ -6,7 +6,7 @@ namespace BottleCapApi.Models
   {
     public int Id { get; set; }
 
-    public string SlackName { get; set; }
+    public string SlackId { get; set; }
 
     public string Name { get; set; }
 

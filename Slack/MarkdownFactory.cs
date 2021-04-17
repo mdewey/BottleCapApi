@@ -23,7 +23,7 @@ namespace BottleCapApi.Slack
     {
       var playerColumnWidth = 20;
       var capColumnWidth = 7;
-      var playerData = $"|{_ColumnValue("Bob", playerColumnWidth)}{_ColumnValue("4", capColumnWidth)}{LINE_BREAK}";
+      var playerData = String.Join("", players.Select(s => $"|{_ColumnValue(s.SlackId, playerColumnWidth)}{_ColumnValue(s.BottleCaps.ToString(), capColumnWidth)}{LINE_BREAK}"));
 
       var emptyData = $"|{_ColumnValue("None yet....", playerColumnWidth)}{_ColumnValue("", capColumnWidth)}{LINE_BREAK}"; ;
       var rv = $"```{_Divider('*', playerColumnWidth)} {_Divider('*', capColumnWidth + 2)}{LINE_BREAK}"
