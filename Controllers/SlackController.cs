@@ -6,6 +6,7 @@ using BottleCapApi.Models;
 using BottleCapApi.Slack;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using StudentLifeTracker.Models;
 
 namespace BottleCapApi.Controllers
@@ -26,9 +27,7 @@ namespace BottleCapApi.Controllers
     [HttpPost("register")]
     public async Task<ActionResult> RegisterGame(string channel_id, string channel_name, string enterprise_id)
     {
-
       // TODO: check DMs
-
       // check if game already exists
       var existingGame = _context
         .Games
@@ -80,6 +79,65 @@ namespace BottleCapApi.Controllers
     }
     // give bottle cap
     // use bottle cap 
+    // see bottle caps
+    [HttpPost("get/bottlecaps")]
+    public async Task<ActionResult> GetBottleCaps(string channel_id, string channel_name, string enterprise_id)
+    {
+      // get all players for a game
+      var existingGame = await _context
+        .Games
+        .Include(i => i.Players)
+        .FirstOrDefaultAsync(a => a.EnterpriseId == enterprise_id && a.SlackId == channel_id);
+      if (existingGame == null)
+      {
+        var response = new Response
+        {
+          blocks = new List<Block>{
+                new Block{
+                    type ="section",
+                    text = new Text{
+                        type="mrkdwn",
+                          text=$"Welp! {channel_name} is not a game! Create a game first!"
+                    }
+                }
+            }
+        };
+        return Ok(new { blocks = response.blocks });
+      }
+      else
+      {
+        var players = new List<Player>();
+        var response = new
+        {
+          blocks = new List<Object>{
+                new {
+                    type = "header",
+                    text= new {
+                        type= "plain_text",
+                        text= $":bottle-cap: Bottle caps for {channel_name} :bottle-cap:",
+                        emoji= true
+                    }
+                },
+                new {
+                    type = "divider",
+                },
+                new {
+                    type = "section",
+                    text = new {
+                        type= "mrkdwn",
+                        text= MarkdownFactory.CreateTable(players)
+                    }
+                }
+            }
+        };
+        return Ok(new
+        {
+          existingGame,
+          blocks = response.blocks
+        });
+      }
+
+    }
 
     // create GM 
     // Add player to as DM 

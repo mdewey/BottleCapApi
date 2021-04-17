@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace BottleCapApi.Models
 {
   public class Player
@@ -10,8 +12,9 @@ namespace BottleCapApi.Models
 
     public int BottleCaps { get; set; } = 0;
 
+    [JsonIgnore]
     public int GameId { get; set; }
-
+    [JsonIgnore]
     public Game Game { get; set; }
 
   }
