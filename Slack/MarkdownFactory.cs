@@ -29,7 +29,7 @@ namespace BottleCapApi.Slack
       var rv = $"```{_Divider('*', playerColumnWidth)} {_Divider('*', capColumnWidth + 2)}{LINE_BREAK}"
              + $"|{_ColumnValue("Players", playerColumnWidth)}{_ColumnValue("Caps", capColumnWidth)}{LINE_BREAK}"
              + $"{_Divider('%', playerColumnWidth)} {_Divider('%', capColumnWidth)}{LINE_BREAK}"
-             + $"{(players.Count() == 0 ? emptyData : playerData)}"
+             + $"{(players == null || players.Count() == 0 ? emptyData : playerData)}"
              + $"{_Divider('*', playerColumnWidth)} {_Divider('*', capColumnWidth + 2)}{LINE_BREAK}```";
       return rv;
     }

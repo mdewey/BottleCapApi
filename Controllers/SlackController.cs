@@ -138,7 +138,7 @@ namespace BottleCapApi.Controllers
                     type = "section",
                     text = new {
                         type= "mrkdwn",
-                        text= MarkdownFactory.CreateTable(players)
+                        text= MarkdownFactory.CreateTable(existingGame.Players)
                     }
                 }
             }
