@@ -12,8 +12,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
-using StudentLifeTracker.Models;
+using BottleCapApi.Models;
 using BottleCapApi.Middleware;
+using BottleCapApi.Slack;
 
 namespace BottleCapApi
 {
@@ -45,7 +46,7 @@ namespace BottleCapApi
               });
          });
 
-
+      services.AddSingleton<ResponseFactory>();
       services.AddDbContext<DatabaseContext>();
     }
 

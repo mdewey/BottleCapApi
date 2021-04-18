@@ -10,7 +10,7 @@ namespace BottleCapApi.Models
 
     public string ChannelName { get; set; }
 
-    public string EnterpriseId { get; set; }
+    public string TeamId { get; set; }
 
 
 

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using StudentLifeTracker.Models;
+using BottleCapApi.Models;
 
 namespace BottleCapApi
 {

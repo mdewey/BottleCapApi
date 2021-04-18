@@ -1,10 +1,9 @@
 using System;
 using System.Text.RegularExpressions;
-using BottleCapApi.Models;
 using Microsoft.EntityFrameworkCore;
 
 
-namespace StudentLifeTracker.Models
+namespace BottleCapApi.Models
 {
   public partial class DatabaseContext : DbContext
   {

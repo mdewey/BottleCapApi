@@ -7,7 +7,7 @@ using BottleCapApi.Slack;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using StudentLifeTracker.Models;
+
 
 namespace BottleCapApi.Controllers
 {
@@ -17,36 +17,30 @@ namespace BottleCapApi.Controllers
   {
     private readonly DatabaseContext _context;
 
-    public SlackController(DatabaseContext context)
+
+    private readonly ResponseFactory _responseFactory;
+
+    public SlackController(DatabaseContext context, ResponseFactory responseFactory)
     {
       _context = context;
+      this._responseFactory = responseFactory;
     }
-
 
     // register game
     [HttpPost("register")]
-    public async Task<ActionResult> RegisterGame(string channel_id, string channel_name, string enterprise_id)
+    public async Task<ActionResult> RegisterGame([FromForm] SlackRequest data)
     {
+      Console.WriteLine(data);
+      var (team_id, channel_id, channel_name) = data;
+
       // TODO: check DMs
       // check if game already exists
       var existingGame = _context
         .Games
-        .FirstOrDefault(a => a.EnterpriseId == enterprise_id && a.SlackId == channel_id);
+        .FirstOrDefault(a => a.TeamId == team_id && a.SlackId == channel_id);
       if (existingGame != null)
       {
-        var response = new Response
-        {
-          blocks = new List<Block>{
-                new Block{
-                    type ="section",
-                    text = new Text{
-                        type="mrkdwn",
-                          text=$"Hold up! {channel_name} has already been created"
-                    }
-                }
-            }
-        };
-        return Ok(new { blocks = response.blocks });
+        return Ok(this._responseFactory.CreateSimpleChannelMessage($"Hold up! {channel_name} has already been created"));
       }
       else
       {
@@ -55,31 +49,20 @@ namespace BottleCapApi.Controllers
         {
           ChannelName = channel_name,
           SlackId = channel_id,
-          EnterpriseId = enterprise_id
+          TeamId = team_id
         };
 
         // save it
         _context.Add(game);
         await _context.SaveChangesAsync();
-        var response = new Response
-        {
-          blocks = new List<Block>{
-                new Block{
-                    type ="section",
-                    text = new Text{
-                        type="mrkdwn",
-                        text=$"Success! {channel_name} has been created"
-                    }
-                }
-            }
-        };
-        return Ok(new { blocks = response.blocks });
+        return Ok(this._responseFactory.CreateSimpleChannelMessage($"Success! {channel_name} has been created"));
+
       }
 
     }
 
     [HttpPost("give/bottlecaps")]
-    public async Task<ActionResult> GiveBottleCap(string channel_id, string channel_name, string text, string enterprise_id)
+    public async Task<ActionResult> GiveBottleCap(string channel_id, string channel_name, string text, string team_id)
     {
       // validate
       if (!(text.First() == '<' && text.Last() == '>'))
@@ -106,7 +89,7 @@ namespace BottleCapApi.Controllers
       var existingGame = await _context
         .Games
         .Include(g => g.Players)
-        .FirstOrDefaultAsync(a => a.EnterpriseId == enterprise_id && a.SlackId == channel_id);
+        .FirstOrDefaultAsync(a => a.TeamId == team_id && a.SlackId == channel_id);
       if (existingGame == null)
       {
         var response = new Response
@@ -168,7 +151,7 @@ namespace BottleCapApi.Controllers
     }
 
     [HttpPost("use/bottlecaps")]
-    public async Task<ActionResult> UseBottleCap(string channel_id, string channel_name, string text, string enterprise_id)
+    public async Task<ActionResult> UseBottleCap(string channel_id, string channel_name, string text, string team_id)
     {
       // validate
       if (!(text.First() == '<' && text.Last() == '>'))
@@ -195,7 +178,7 @@ namespace BottleCapApi.Controllers
       var existingGame = await _context
         .Games
         .Include(g => g.Players)
-        .FirstOrDefaultAsync(a => a.EnterpriseId == enterprise_id && a.SlackId == channel_id);
+        .FirstOrDefaultAsync(a => a.TeamId == team_id && a.SlackId == channel_id);
       if (existingGame == null)
       {
         var response = new Response
@@ -291,13 +274,13 @@ namespace BottleCapApi.Controllers
 
 
     [HttpPost("get/bottlecaps")]
-    public async Task<ActionResult> GetBottleCaps(string channel_id, string channel_name, string enterprise_id)
+    public async Task<ActionResult> GetBottleCaps(string channel_id, string channel_name, string team_id)
     {
       // get all players for a game
       var existingGame = await _context
         .Games
         .Include(i => i.Players)
-        .FirstOrDefaultAsync(a => a.EnterpriseId == enterprise_id && a.SlackId == channel_id);
+        .FirstOrDefaultAsync(a => a.TeamId == team_id && a.SlackId == channel_id);
       if (existingGame == null)
       {
         var response = new Response

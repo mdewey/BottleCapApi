@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using BottleCapApi.Slack;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using StudentLifeTracker.Models;
+using BottleCapApi.Models;
 
 namespace BottleCapApi.Controllers
 {
@@ -13,6 +13,14 @@ namespace BottleCapApi.Controllers
   [ApiController]
   public class PingController : ControllerBase
   {
+
+    private readonly ResponseFactory _responseFactory;
+
+    public PingController(ResponseFactory responseFactory)
+    {
+      this._responseFactory = responseFactory;
+    }
+
     [HttpGet]
     public ActionResult Ping()
     {
@@ -23,8 +31,7 @@ namespace BottleCapApi.Controllers
     [HttpPost("slack")]
     public async Task<ActionResult> RegisterGame(string channel_id, string channel_name, string enterprise_id)
     {
-      var blocks = new[] { new { type = "section", text = new { type = "mrkdwn", text = $"Good Morning! server time is {DateTime.UtcNow}" } } };
-      return Ok(new { blocks, response_type = "in_channel" });
+      return Ok(this._responseFactory.CreateSimpleChannelMessage($"Good Morning! server time is {DateTime.UtcNow}"));
     }
 
 

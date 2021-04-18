@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BottleCapApi.Models;
-using StudentLifeTracker.Models;
+using BottleCapApi.Models;
 
 namespace BottleCapApi.Controllers
 {
@@ -29,7 +29,16 @@ namespace BottleCapApi.Controllers
     }
 
 
-    [HttpDelete]
+    [HttpDelete("all")]
+    public async Task<ActionResult> ClearAll()
+    {
+      var all = _context.Logs;
+      _context.RemoveRange(all);
+      await _context.SaveChangesAsync();
+      return Ok();
+    }
+
+    [HttpDelete("week")]
     public async Task<ActionResult> DeleteOlderThanAWeek()
     {
       var compareDate = DateTime.Now.AddDays(-5);

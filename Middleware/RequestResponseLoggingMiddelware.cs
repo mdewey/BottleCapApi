@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BottleCapApi.Models;
 using Microsoft.AspNetCore.Http;
-using StudentLifeTracker.Models;
+using BottleCapApi.Models;
 
 namespace BottleCapApi.Middleware
 {
@@ -20,63 +20,41 @@ namespace BottleCapApi.Middleware
 
     public async Task Invoke(HttpContext context, DatabaseContext dbContext)
     {
-      //First, get the incoming request
+      //Continue down the Middleware pipeline, eventually returning to this class
       var request = await FormatRequest(context.Request);
+      await _next(context);
+      var response = String.Empty;
 
-      //Copy a pointer to the original response body stream
-      var originalBodyStream = context.Response.Body;
-
-      //Create a new memory stream...
-      using (var responseBody = new MemoryStream())
+      // //TODO: Save log to chosen datastore
+      dbContext.Logs.Add(new Log
       {
-        //...and use that for the temporary response body
-        context.Response.Body = responseBody;
+        Request = request,
+        Response = response
+      });
+      await dbContext.SaveChangesAsync();
 
-        //Continue down the Middleware pipeline, eventually returning to this class
-        await _next(context);
-
-        //Format the response from the server
-        var response = await FormatResponse(context.Response);
-
-        //TODO: Save log to chosen datastore
-        Console.WriteLine("request");
-        Console.WriteLine(request);
-        Console.WriteLine("response");
-        Console.WriteLine(response);
-        dbContext.Logs.Add(new Log
-        {
-          Request = request,
-          Response = response
-        });
-        await dbContext.SaveChangesAsync();
-
-
-
-        //Copy the contents of the new memory stream (which contains the response) to the original stream, which is then returned to the client.
-        await responseBody.CopyToAsync(originalBodyStream);
-      }
     }
 
     private async Task<string> FormatRequest(HttpRequest request)
     {
-      var body = request.Body;
+      var bodyAsText = String.Empty;
+      var headers = request.Headers;
+      foreach (var header in headers)
+      {
+        Console.WriteLine($"header: {header.Key} = {header.Value}");
+      }
 
-      //This line allows us to set the reader for the request back at the beginning of its stream.
-      request.EnableBuffering();
-
-      //We now need to read the request stream.  First, we create a new byte[] with the same length as the request stream...
-      var buffer = new byte[Convert.ToInt32(request.ContentLength)];
-
-      //...Then we copy the entire request stream into the new buffer.
-      await request.Body.ReadAsync(buffer, 0, buffer.Length);
-
-      //We convert the byte[] into a string using UTF8 encoding...
-      var bodyAsText = Encoding.UTF8.GetString(buffer);
-
-      //..and finally, assign the read body back to the request body, which is allowed because of EnableRewind()
-      request.Body = body;
-
-      return $"{request.Scheme} {request.Host}{request.Path} {request.QueryString} {bodyAsText}";
+      if ((request?.ContentType?.Contains("form")).GetValueOrDefault() && request.Form.Count > 0)
+      {
+        Console.WriteLine("form values");
+        foreach (var key in request.Form.Keys)
+        {
+          var text = $" ^ {key}|{request.Form[key]} ";
+          Console.WriteLine(text);
+          bodyAsText += text;
+        }
+      }
+      return $"| path:{request.Path} | qs: {request.QueryString} |body: {bodyAsText}";
     }
 
     private async Task<string> FormatResponse(HttpResponse response)
@@ -90,7 +68,7 @@ namespace BottleCapApi.Middleware
       //We need to reset the reader for the response so that the client can read it.
       response.Body.Seek(0, SeekOrigin.Begin);
 
-      //Return the string for the response, including the status code (e.g. 200, 404, 401, etc.)
+
       return $"{response.StatusCode}: {text}";
     }
   }
