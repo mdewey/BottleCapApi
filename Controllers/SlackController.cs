@@ -273,9 +273,11 @@ namespace BottleCapApi.Controllers
     }
 
 
+    // START HERE
     [HttpPost("get/bottlecaps")]
-    public async Task<ActionResult> GetBottleCaps(string channel_id, string channel_name, string team_id)
+    public async Task<ActionResult> GetBottleCaps([FromForm] SlackRequest data)
     {
+      var (team_id, channel_id, channel_name, _) = data;
       // get all players for a game
       var existingGame = await _context
         .Games
