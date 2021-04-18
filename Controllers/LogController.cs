@@ -28,5 +28,16 @@ namespace BottleCapApi.Controllers
       return await _context.Logs.OrderByDescending(o => o.When).ToListAsync();
     }
 
+
+    [HttpDelete]
+    public async Task<ActionResult> DeleteOlderThanAWeek()
+    {
+      var compareDate = DateTime.Now.AddDays(-5);
+      var old = _context.Logs.Where(w => w.When < compareDate);
+      _context.RemoveRange(old);
+      await _context.SaveChangesAsync();
+      return Ok();
+    }
+
   }
 }
