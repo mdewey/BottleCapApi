@@ -77,9 +77,219 @@ namespace BottleCapApi.Controllers
       }
 
     }
-    // give bottle cap
-    // use bottle cap 
-    // see bottle caps
+
+    [HttpPost("give/bottlecaps")]
+    public async Task<ActionResult> GiveBottleCap(string channel_id, string channel_name, string text, string enterprise_id)
+    {
+      // validate
+      if (!(text.First() == '<' && text.Last() == '>'))
+      {
+        var response = new Response
+        {
+          blocks = new List<Block>{
+                new Block{
+                    type ="section",
+                    text = new Text{
+                        type="mrkdwn",
+                        text=$"Thats not a real player!"
+                    }
+                }
+            }
+        };
+        return Ok(new
+        {
+          blocks = response.blocks
+        });
+      }
+
+      // get all players for a game
+      var existingGame = await _context
+        .Games
+        .Include(g => g.Players)
+        .FirstOrDefaultAsync(a => a.EnterpriseId == enterprise_id && a.SlackId == channel_id);
+      if (existingGame == null)
+      {
+        var response = new Response
+        {
+          blocks = new List<Block>{
+                new Block{
+                    type ="section",
+                    text = new Text{
+                        type="mrkdwn",
+                          text=$"Welp! {channel_name} is not a game! Create a game first!"
+                    }
+                }
+            }
+        };
+        return Ok(new { blocks = response.blocks });
+      }
+      else
+      {
+        // START HERE:
+        // get username
+        var userName = text.Trim();
+        // update/create player
+        var player = existingGame.Players.FirstOrDefault(f => f.SlackId == userName);
+        if (player == null)
+        {
+          var newPlayer = new Player
+          {
+            SlackId = userName,
+            GameId = existingGame.Id,
+            BottleCaps = 1,
+          };
+          _context.Players.Add(newPlayer);
+          await _context.SaveChangesAsync();
+        }
+        else
+        {
+          player.BottleCaps++;
+          await _context.SaveChangesAsync();
+        }
+        // save player
+
+        var response = new Response
+        {
+          blocks = new List<Block>{
+                new Block{
+                    type ="section",
+                    text = new Text{
+                        type="mrkdwn",
+                        text=$"Success! Bottle cap for {text}!"
+                    }
+                }
+            }
+        };
+        return Ok(new
+        {
+          blocks = response.blocks
+        });
+      };
+    }
+
+    [HttpPost("use/bottlecaps")]
+    public async Task<ActionResult> UseBottleCap(string channel_id, string channel_name, string text, string enterprise_id)
+    {
+      // validate
+      if (!(text.First() == '<' && text.Last() == '>'))
+      {
+        var response = new Response
+        {
+          blocks = new List<Block>{
+                new Block{
+                    type ="section",
+                    text = new Text{
+                        type="mrkdwn",
+                        text=$"Thats not a real player!"
+                    }
+                }
+            }
+        };
+        return Ok(new
+        {
+          blocks = response.blocks
+        });
+      }
+
+      // get all players for a game
+      var existingGame = await _context
+        .Games
+        .Include(g => g.Players)
+        .FirstOrDefaultAsync(a => a.EnterpriseId == enterprise_id && a.SlackId == channel_id);
+      if (existingGame == null)
+      {
+        var response = new Response
+        {
+          blocks = new List<Block>{
+                new Block{
+                    type ="section",
+                    text = new Text{
+                        type="mrkdwn",
+                          text=$"Welp! {channel_name} is not a game! Create a game first!"
+                    }
+                }
+            }
+        };
+        return Ok(new { blocks = response.blocks });
+      }
+      else
+      {
+        // START HERE:
+        // get username
+        var userName = text.Trim();
+        // update/create player
+        var player = existingGame.Players.FirstOrDefault(f => f.SlackId == userName);
+        if (player == null)
+        {
+
+          var response = new Response
+          {
+            blocks = new List<Block>{
+                new Block{
+                    type ="section",
+                    text = new Text{
+                        type="mrkdwn",
+                        text=$"Whomp! {text} does not have any bottle caps!"
+                    }
+                }
+            }
+          };
+          return Ok(new
+          {
+            existingGame,
+            blocks = response.blocks
+          });
+        }
+        else
+        {
+          if (player.BottleCaps <= 0)
+          {
+            var resp = new Response
+            {
+              blocks = new List<Block>{
+                new Block{
+                    type ="section",
+                    text = new Text{
+                        type="mrkdwn",
+                        text=$"Whomp! {text} does not have any bottle caps!"
+                    }
+                }
+            }
+            };
+            return Ok(new
+            {
+              existingGame,
+              blocks = resp.blocks
+            });
+          }
+          else
+          {
+            player.BottleCaps--;
+            await _context.SaveChangesAsync();
+
+            var response = new Response
+            {
+              blocks = new List<Block>{
+                new Block{
+                    type ="section",
+                    text = new Text{
+                        type="mrkdwn",
+                        text=$"Ca-ching! Bottle cap for {text} has been cashed in!"
+                    }
+                }
+            }
+            };
+            return Ok(new
+            {
+              blocks = response.blocks
+            });
+          }
+
+        }
+      };
+    }
+
+
     [HttpPost("get/bottlecaps")]
     public async Task<ActionResult> GetBottleCaps(string channel_id, string channel_name, string enterprise_id)
     {
@@ -106,20 +316,6 @@ namespace BottleCapApi.Controllers
       }
       else
       {
-        var players = new List<Player>{
-            new Player{
-                BottleCaps= new Random().Next(0,10),
-                SlackId = "Tim  1"
-            },
-            new Player{
-                BottleCaps= new Random().Next(0,10),
-                SlackId = "Tim  2"
-            },
-            new Player{
-                BottleCaps= new Random().Next(0,10),
-                SlackId = "Tim  3"
-            }
-        };
         var response = new
         {
           blocks = new List<Object>{
@@ -145,19 +341,15 @@ namespace BottleCapApi.Controllers
         };
         return Ok(new
         {
-          existingGame,
           blocks = response.blocks
         });
       }
-
     }
 
 
+    // COMMAND: create GM 
 
-
-    // create GM 
-
-    // Add player to as DM 
+    // COMMAND: Add player to as DM 
 
 
   }

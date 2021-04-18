@@ -21,16 +21,30 @@ namespace BottleCapApi.Slack
 
     public static string CreateTable(IEnumerable<Player> players)
     {
-      var playerColumnWidth = 20;
+      var playerColumnWidth = 30;
       var capColumnWidth = 7;
       var playerData = String.Join("", players.Select(s => $"|{_ColumnValue(s.SlackId, playerColumnWidth)}{_ColumnValue(s.BottleCaps.ToString(), capColumnWidth)}{LINE_BREAK}"));
 
       var emptyData = $"|{_ColumnValue("None yet....", playerColumnWidth)}{_ColumnValue("", capColumnWidth)}{LINE_BREAK}"; ;
-      var rv = $"```{_Divider('*', playerColumnWidth)} {_Divider('*', capColumnWidth + 2)}{LINE_BREAK}"
+      var rv = $"```{_Divider('=', playerColumnWidth)} {_Divider('=', capColumnWidth + 2)}{LINE_BREAK}"
              + $"|{_ColumnValue("Players", playerColumnWidth)}{_ColumnValue("Caps", capColumnWidth)}{LINE_BREAK}"
-             + $"{_Divider('%', playerColumnWidth)} {_Divider('%', capColumnWidth)}{LINE_BREAK}"
+             + $"{_Divider('-', playerColumnWidth)} {_Divider('-', capColumnWidth)}{LINE_BREAK}"
              + $"{(players == null || players.Count() == 0 ? emptyData : playerData)}"
-             + $"{_Divider('*', playerColumnWidth)} {_Divider('*', capColumnWidth + 2)}{LINE_BREAK}```";
+             + $"{_Divider('=', playerColumnWidth)} {_Divider('=', capColumnWidth + 2)}{LINE_BREAK}```";
+      return rv;
+    }
+    public static string CreateCards(IEnumerable<Player> players)
+    {
+      var playerColumnWidth = 30;
+      var capColumnWidth = 7;
+      var playerData = String.Join("", players.Select(s => $"|{_ColumnValue(s.SlackId, playerColumnWidth)}{_ColumnValue(s.BottleCaps.ToString(), capColumnWidth)}{LINE_BREAK}"));
+
+      var emptyData = $"|{_ColumnValue("None yet....", playerColumnWidth)}{_ColumnValue("", capColumnWidth)}{LINE_BREAK}"; ;
+      var rv = $"```"
+             + $"|{_ColumnValue("Players", playerColumnWidth)}{_ColumnValue("Caps", capColumnWidth)}{LINE_BREAK}"
+             + $"{_Divider('-', playerColumnWidth)} {_Divider('-', capColumnWidth)}{LINE_BREAK}"
+             + $"{(players == null || players.Count() == 0 ? emptyData : playerData)}"
+             + $"{_Divider('=', playerColumnWidth)} {_Divider('=', capColumnWidth + 2)}{LINE_BREAK}```";
       return rv;
     }
   }

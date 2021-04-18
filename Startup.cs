@@ -35,6 +35,16 @@ namespace BottleCapApi
         c.SwaggerDoc("v1", new OpenApiInfo { Title = "BottleCapApi", Version = "v1" });
       });
 
+      services.AddCors(options =>
+         {
+           options.AddDefaultPolicy(
+              builder =>
+              {
+                builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
+              });
+         });
+
+
       services.AddDbContext<DatabaseContext>();
     }
 
@@ -51,6 +61,7 @@ namespace BottleCapApi
       app.UseHttpsRedirection();
 
       app.UseRouting();
+      app.UseCors();
 
       app.UseAuthorization();
 
