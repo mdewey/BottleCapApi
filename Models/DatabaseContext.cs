@@ -12,6 +12,10 @@ namespace StudentLifeTracker.Models
     public DbSet<Game> Games { get; set; }
     public DbSet<Player> Players { get; set; }
 
+    public DbSet<Log> Logs { get; set; }
+
+
+
     private string ConvertPostConnectionToConnectionString(string connection)
     {
       var _connection = connection.Replace("postgres://", String.Empty);
