@@ -16,7 +16,7 @@ namespace StudentLifeTracker.Models
     {
       var _connection = connection.Replace("postgres://", String.Empty);
       var output = Regex.Split(_connection, ":|@|/");
-      return $"server={output[2]};database={output[4]};User Id={output[0]}; password={output[1]}; port={output[3]}";
+      return $"server={output[2]};database={output[4]};User Id={output[0]}; password={output[1]}; port={output[3]};SSL Mode=Prefer;Trust Server Certificate=true;";
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
