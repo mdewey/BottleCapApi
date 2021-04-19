@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BottleCapApi.Models;
-using BottleCapApi.Models;
+
 
 namespace BottleCapApi.Controllers
 {

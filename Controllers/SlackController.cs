@@ -31,7 +31,7 @@ namespace BottleCapApi.Controllers
     public async Task<ActionResult> RegisterGame([FromForm] SlackRequest data)
     {
       Console.WriteLine(data);
-      var (team_id, channel_id, channel_name) = data;
+      var (team_id, channel_id, channel_name, _) = data;
 
       // TODO: check DMs
       // check if game already exists
