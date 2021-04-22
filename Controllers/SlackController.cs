@@ -173,7 +173,7 @@ namespace BottleCapApi.Controllers
                     type = "header",
                     text= new {
                         type= "plain_text",
-                        text= $":d20-yeah: Bottle caps for {channel_name} :d20-yeah:",
+                        text= $":spinning-coin: Bottle caps for {channel_name} :spinning-coin:",
                         emoji= true
                     }
                 },
