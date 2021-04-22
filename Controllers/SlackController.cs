@@ -82,7 +82,6 @@ namespace BottleCapApi.Controllers
       }
       else
       {
-        // START HERE:
         // get username
         var userName = text.Trim();
         // update/create player
@@ -114,22 +113,7 @@ namespace BottleCapApi.Controllers
       // validate
       if (!(text.First() == '<' && text.Last() == '>'))
       {
-        var response = new Response
-        {
-          blocks = new List<Block>{
-                new Block{
-                    type ="section",
-                    text = new Text{
-                        type="mrkdwn",
-                        text=$"Thats not a real player!"
-                    }
-                }
-            }
-        };
-        return Ok(new
-        {
-          blocks = response.blocks
-        });
+        return Ok(this._responseFactory.CreateSimpleChannelMessage($"Thats not a real player! = {text}", false));
       }
 
       // get all players for a game
@@ -139,99 +123,34 @@ namespace BottleCapApi.Controllers
         .FirstOrDefaultAsync(a => a.TeamId == team_id && a.SlackId == channel_id);
       if (existingGame == null)
       {
-        var response = new Response
-        {
-          blocks = new List<Block>{
-                new Block{
-                    type ="section",
-                    text = new Text{
-                        type="mrkdwn",
-                          text=$"Welp! {channel_name} is not a game! Create a game first!"
-                    }
-                }
-            }
-        };
-        return Ok(new { blocks = response.blocks });
+        return Ok(this._responseFactory.CreateSimpleChannelMessage($"Welp! {channel_name} is not a game! Create a game first!", false));
       }
       else
       {
-        // START HERE:
         // get username
         var userName = text.Trim();
         // update/create player
         var player = existingGame.Players.FirstOrDefault(f => f.SlackId == userName);
         if (player == null)
         {
-
-          var response = new Response
-          {
-            blocks = new List<Block>{
-                new Block{
-                    type ="section",
-                    text = new Text{
-                        type="mrkdwn",
-                        text=$"Whomp! {text} does not have any bottle caps!"
-                    }
-                }
-            }
-          };
-          return Ok(new
-          {
-            existingGame,
-            blocks = response.blocks
-          });
+          return Ok(this._responseFactory.CreateSimpleChannelMessage($"Whomp! {text} does not have any bottle caps!"));
         }
         else
         {
           if (player.BottleCaps <= 0)
           {
-            var resp = new Response
-            {
-              blocks = new List<Block>{
-                new Block{
-                    type ="section",
-                    text = new Text{
-                        type="mrkdwn",
-                        text=$"Whomp! {text} does not have any bottle caps!"
-                    }
-                }
-            }
-            };
-            return Ok(new
-            {
-              existingGame,
-              blocks = resp.blocks
-            });
+            return Ok(this._responseFactory.CreateSimpleChannelMessage($"Whomp! {text} has run out of bottle caps!"));
           }
           else
           {
             player.BottleCaps--;
             await _context.SaveChangesAsync();
-
-            var response = new Response
-            {
-              blocks = new List<Block>{
-                new Block{
-                    type ="section",
-                    text = new Text{
-                        type="mrkdwn",
-                        text=$"Ca-ching! Bottle cap for {text} has been cashed in!"
-                    }
-                }
-            }
-            };
-            return Ok(new
-            {
-              blocks = response.blocks
-            });
+            return Ok(this._responseFactory.CreateSimpleChannelMessage($"Ca-ching! Bottle cap for {text} has been cashed in!"));
           }
-
         }
       };
     }
 
-
-    // START HERE
     [HttpPost("get/bottlecaps")]
     public async Task<ActionResult> GetBottleCaps([FromForm] SlackRequest data)
     {
@@ -277,12 +196,6 @@ namespace BottleCapApi.Controllers
         });
       }
     }
-
-
-    // COMMAND: create GM 
-
-    // COMMAND: Add player to as DM 
-
 
   }
 }
