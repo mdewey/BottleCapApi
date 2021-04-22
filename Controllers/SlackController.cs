@@ -62,27 +62,13 @@ namespace BottleCapApi.Controllers
     }
 
     [HttpPost("give/bottlecaps")]
-    public async Task<ActionResult> GiveBottleCap(string channel_id, string channel_name, string text, string team_id)
+    public async Task<ActionResult> GiveBottleCap([FromForm] SlackRequest data)
     {
+      var (team_id, channel_id, channel_name, text) = data;
       // validate
       if (!(text.First() == '<' && text.Last() == '>'))
       {
-        var response = new Response
-        {
-          blocks = new List<Block>{
-                new Block{
-                    type ="section",
-                    text = new Text{
-                        type="mrkdwn",
-                        text=$"Thats not a real player!"
-                    }
-                }
-            }
-        };
-        return Ok(new
-        {
-          blocks = response.blocks
-        });
+        return Ok(this._responseFactory.CreateSimpleChannelMessage($"Thats not a real player! = {text}", false));
       }
 
       // get all players for a game
@@ -92,19 +78,7 @@ namespace BottleCapApi.Controllers
         .FirstOrDefaultAsync(a => a.TeamId == team_id && a.SlackId == channel_id);
       if (existingGame == null)
       {
-        var response = new Response
-        {
-          blocks = new List<Block>{
-                new Block{
-                    type ="section",
-                    text = new Text{
-                        type="mrkdwn",
-                          text=$"Welp! {channel_name} is not a game! Create a game first!"
-                    }
-                }
-            }
-        };
-        return Ok(new { blocks = response.blocks });
+        return Ok(this._responseFactory.CreateSimpleChannelMessage($"Welp! {channel_name} is not a game! Create a game first!", false));
       }
       else
       {
@@ -129,30 +103,14 @@ namespace BottleCapApi.Controllers
           player.BottleCaps++;
           await _context.SaveChangesAsync();
         }
-        // save player
-
-        var response = new Response
-        {
-          blocks = new List<Block>{
-                new Block{
-                    type ="section",
-                    text = new Text{
-                        type="mrkdwn",
-                        text=$"Success! Bottle cap for {text}!"
-                    }
-                }
-            }
-        };
-        return Ok(new
-        {
-          blocks = response.blocks
-        });
+        return Ok(this._responseFactory.CreateSimpleChannelMessage($"Success! Bottle cap for {text}!"));
       };
     }
 
     [HttpPost("use/bottlecaps")]
-    public async Task<ActionResult> UseBottleCap(string channel_id, string channel_name, string text, string team_id)
+    public async Task<ActionResult> UseBottleCap([FromForm] SlackRequest data)
     {
+      var (team_id, channel_id, channel_name, text) = data;
       // validate
       if (!(text.First() == '<' && text.Last() == '>'))
       {
@@ -285,19 +243,7 @@ namespace BottleCapApi.Controllers
         .FirstOrDefaultAsync(a => a.TeamId == team_id && a.SlackId == channel_id);
       if (existingGame == null)
       {
-        var response = new Response
-        {
-          blocks = new List<Block>{
-                new Block{
-                    type ="section",
-                    text = new Text{
-                        type="mrkdwn",
-                          text=$"Welp! {channel_name} is not a game! Create a game first!"
-                    }
-                }
-            }
-        };
-        return Ok(new { blocks = response.blocks });
+        return Ok(this._responseFactory.CreateSimpleChannelMessage($"Welp! {channel_name} is not a game! Create a game first!", false));
       }
       else
       {
@@ -308,7 +254,7 @@ namespace BottleCapApi.Controllers
                     type = "header",
                     text= new {
                         type= "plain_text",
-                        text= $":bottle-cap: Bottle caps for {channel_name} :bottle-cap:",
+                        text= $":d20-yeah: Bottle caps for {channel_name} :d20-yeah:",
                         emoji= true
                     }
                 },
@@ -326,7 +272,8 @@ namespace BottleCapApi.Controllers
         };
         return Ok(new
         {
-          blocks = response.blocks
+          blocks = response.blocks,
+          response_type = "in_channel"
         });
       }
     }
