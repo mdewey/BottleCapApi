@@ -126,7 +126,7 @@ namespace BottleCapApi.Controllers
         // DM Check
         if (existingGame.DungeonMasters.Any(a => a.SlackId != user_id))
         {
-          return Ok(this._responseFactory.CreateSimpleChannelMessage($"Sneaky Bastard! You are not the DM of {channel_name}", false));
+          return Ok(this._responseFactory.CreateSimpleChannelMessage($"Sneaky Bastard! You are not the DM of {channel_name}. Too many bottle caps can crash the economy!", false));
         }
         // get username
         var userName = text.Trim();
@@ -155,24 +155,57 @@ namespace BottleCapApi.Controllers
     [HttpPost("use/bottlecaps")]
     public async Task<ActionResult> UseBottleCap([FromForm] SlackRequest data)
     {
-      var (team_id, channel_id, channel_name, text, _, _) = data;
-      // validate
-      if (!(text.First() == '<' && text.Last() == '>'))
-      {
-        return Ok(this._responseFactory.CreateSimpleChannelMessage($"Thats not a real player! = {text}", false));
-      }
+      var (team_id, channel_id, channel_name, text, user_id, user_name) = data;
 
       // get all players for a game
       var existingGame = await _context
         .Games
         .Include(g => g.Players)
+        .Include(i => i.DungeonMasters)
         .FirstOrDefaultAsync(a => a.TeamId == team_id && a.SlackId == channel_id);
       if (existingGame == null)
       {
         return Ok(this._responseFactory.CreateSimpleChannelMessage($"Welp! {channel_name} is not a game! Create a game first!", false));
       }
+
+
+      // if no text (then the user is using their own cap)
+      if (String.IsNullOrWhiteSpace(text))
+      {
+        // update/create player
+        var userId = $"<@{user_id}|{user_name}>";
+        var player = existingGame.Players.FirstOrDefault(f => f.SlackId == userId);
+        if (player == null)
+        {
+          return Ok(this._responseFactory.CreateSimpleChannelMessage($"Whomp! {text} does not have any bottle caps!"));
+        }
+        else
+        {
+          if (player.BottleCaps <= 0)
+          {
+            return Ok(this._responseFactory.CreateSimpleChannelMessage($"Whomp! {text} has run out of bottle caps!"));
+          }
+          else
+          {
+            player.BottleCaps--;
+            await _context.SaveChangesAsync();
+            return Ok(this._responseFactory.CreateSimpleChannelMessage($"Ca-ching! Bottle cap for {userId} has been cashed in!"));
+          }
+        }
+      }
+      // if text (this is the DM giving bottlecaps)
       else
       {
+        // DM Check
+        if (existingGame.DungeonMasters.Any(a => a.SlackId != user_id))
+        {
+          return Ok(this._responseFactory.CreateSimpleChannelMessage($"! You are not the DM of {channel_name}", false));
+        }
+        // validate
+        if (!(text.First() == '<' && text.Last() == '>'))
+        {
+          return Ok(this._responseFactory.CreateSimpleChannelMessage($"Thats not a real player! = {text}", false));
+        }
         // get username
         var userName = text.Trim();
         // update/create player
@@ -194,7 +227,12 @@ namespace BottleCapApi.Controllers
             return Ok(this._responseFactory.CreateSimpleChannelMessage($"Ca-ching! Bottle cap for {text} has been cashed in!"));
           }
         }
-      };
+
+      }
+
+
+
+
     }
 
     [HttpPost("get/bottlecaps")]
