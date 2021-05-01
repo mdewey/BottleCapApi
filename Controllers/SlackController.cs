@@ -104,7 +104,7 @@ namespace BottleCapApi.Controllers
     [HttpPost("give/bottlecaps")]
     public async Task<ActionResult> GiveBottleCap([FromForm] SlackRequest data)
     {
-      var (team_id, channel_id, channel_name, text, _, _) = data;
+      var (team_id, channel_id, channel_name, text, user_id, user_name) = data;
       // validate
       if (!(text.First() == '<' && text.Last() == '>'))
       {
@@ -115,6 +115,7 @@ namespace BottleCapApi.Controllers
       var existingGame = await _context
         .Games
         .Include(g => g.Players)
+        .Include(i => i.DungeonMasters)
         .FirstOrDefaultAsync(a => a.TeamId == team_id && a.SlackId == channel_id);
       if (existingGame == null)
       {
@@ -122,6 +123,11 @@ namespace BottleCapApi.Controllers
       }
       else
       {
+        // DM Check
+        if (existingGame.DungeonMasters.Any(a => a.SlackId != user_id))
+        {
+          return Ok(this._responseFactory.CreateSimpleChannelMessage($"Sneaky Bastard! You are not the DM of {channel_name}", false));
+        }
         // get username
         var userName = text.Trim();
         // update/create player
