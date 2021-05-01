@@ -13,7 +13,7 @@ namespace BottleCapApi.Models
 
     public DbSet<Log> Logs { get; set; }
 
-
+    public DbSet<DungeonMaster> DungeonMasters { get; set; }
 
     private string ConvertPostConnectionToConnectionString(string connection)
     {

@@ -16,6 +16,8 @@ namespace BottleCapApi.Models
 
     public List<Player> Players { get; set; } = new List<Player>();
 
+    public List<DungeonMaster> DungeonMasters { get; set; } = new List<DungeonMaster>();
+
 
 
   }

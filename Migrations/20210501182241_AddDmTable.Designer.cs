@@ -3,15 +3,17 @@ using System;
 using BottleCapApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace BottleCapApi.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20210501182241_AddDmTable")]
+    partial class AddDmTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,9 +32,6 @@ namespace BottleCapApi.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("SlackId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("SlackName")
                         .HasColumnType("text");
 
                     b.HasKey("Id");

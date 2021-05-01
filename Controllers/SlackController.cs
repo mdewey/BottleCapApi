@@ -31,7 +31,7 @@ namespace BottleCapApi.Controllers
     public async Task<ActionResult> RegisterGame([FromForm] SlackRequest data)
     {
       Console.WriteLine(data);
-      var (team_id, channel_id, channel_name, _) = data;
+      var (team_id, channel_id, channel_name, _, _, _) = data;
 
       // TODO: check DMs
       // check if game already exists
@@ -61,10 +61,50 @@ namespace BottleCapApi.Controllers
 
     }
 
+
+    // register game
+    [HttpPost("claim/dm")]
+    public async Task<ActionResult> ClaimDm([FromForm] SlackRequest data)
+    {
+      var (team_id, channel_id, channel_name, _, user_id, user_name) = data;
+
+      // get the game
+      // check if game already exists
+      var existingGame = _context
+        .Games
+        .Include(i => i.DungeonMasters)
+        .FirstOrDefault(a => a.TeamId == team_id && a.SlackId == channel_id);
+      if (existingGame == null)
+      {
+        return Ok(this._responseFactory.CreateSimpleChannelMessage($"Welp! {channel_name} is not a game! Create a game first!", false));
+      }
+      else
+      {
+        if (existingGame.DungeonMasters.Count() > 0)
+        {
+          return Ok(this._responseFactory.CreateSimpleChannelMessage($"Muntiny is it?! {channel_name} has already has a DM."));
+        }
+        else
+        {
+          var dm = new DungeonMaster
+          {
+            SlackId = user_id,
+            SlackName = user_name,
+            GameId = existingGame.Id
+          };
+
+          this._context.DungeonMasters.Add(dm);
+          await this._context.SaveChangesAsync();
+
+          return Ok(this._responseFactory.CreateSimpleChannelMessage($"Claimed! {channel_name} now belongs to <@{dm.SlackId}|{dm.SlackName}>"));
+        }
+      }
+    }
+
     [HttpPost("give/bottlecaps")]
     public async Task<ActionResult> GiveBottleCap([FromForm] SlackRequest data)
     {
-      var (team_id, channel_id, channel_name, text) = data;
+      var (team_id, channel_id, channel_name, text, _, _) = data;
       // validate
       if (!(text.First() == '<' && text.Last() == '>'))
       {
@@ -109,7 +149,7 @@ namespace BottleCapApi.Controllers
     [HttpPost("use/bottlecaps")]
     public async Task<ActionResult> UseBottleCap([FromForm] SlackRequest data)
     {
-      var (team_id, channel_id, channel_name, text) = data;
+      var (team_id, channel_id, channel_name, text, _, _) = data;
       // validate
       if (!(text.First() == '<' && text.Last() == '>'))
       {
@@ -154,7 +194,7 @@ namespace BottleCapApi.Controllers
     [HttpPost("get/bottlecaps")]
     public async Task<ActionResult> GetBottleCaps([FromForm] SlackRequest data)
     {
-      var (team_id, channel_id, channel_name, _) = data;
+      var (team_id, channel_id, channel_name, _, _, _) = data;
       // get all players for a game
       var existingGame = await _context
         .Games

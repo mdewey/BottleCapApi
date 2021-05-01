@@ -39,17 +39,20 @@ namespace BottleCapApi.Middleware
         var response = await FormatResponse(context.Response);
 
         //TODO: Save log to chosen datastore
-        Console.WriteLine("request");
-        Console.WriteLine(request);
-        Console.WriteLine("response");
-        Console.WriteLine(response);
-        dbContext.Logs.Add(new Log
+        if (!(request.Contains("path:/api/Log")))
         {
-          Request = request,
-          Response = response
-        });
-        await dbContext.SaveChangesAsync();
+          Console.WriteLine("request");
+          Console.WriteLine(request);
+          Console.WriteLine("response");
+          Console.WriteLine(response);
+          dbContext.Logs.Add(new Log
+          {
+            Request = request,
+            Response = response
+          });
+          await dbContext.SaveChangesAsync();
 
+        }
 
 
         //Copy the contents of the new memory stream (which contains the response) to the original stream, which is then returned to the client.
