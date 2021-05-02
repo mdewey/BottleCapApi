@@ -29,7 +29,6 @@ namespace BottleCapApi.Controllers
     [HttpPost("register")]
     public async Task<ActionResult> RegisterGame([FromForm] SlackRequest data)
     {
-      Console.WriteLine(data);
       var (team_id, channel_id, channel_name, _, _, _) = data;
 
       // TODO: check DMs
@@ -39,7 +38,7 @@ namespace BottleCapApi.Controllers
         .FirstOrDefault(a => a.TeamId == team_id && a.SlackId == channel_id);
       if (existingGame != null)
       {
-        return Ok(this._responseFactory.CreateSimpleChannelMessage($"Hold up! {channel_name} has already been created"));
+        return Ok(this._responseFactory.CreateSimpleChannelMessage($"Hold up! {existingGame.ChannelName} has already been created"));
       }
       else
       {
@@ -54,7 +53,7 @@ namespace BottleCapApi.Controllers
         // save it
         _context.Add(game);
         await _context.SaveChangesAsync();
-        return Ok(this._responseFactory.CreateSimpleChannelMessage($"Success! {channel_name} has been created"));
+        return Ok(this._responseFactory.CreateSimpleChannelMessage($"Success! {existingGame.ChannelName} has been created"));
 
       }
 
@@ -104,7 +103,7 @@ namespace BottleCapApi.Controllers
       {
         if (existingGame.DungeonMasters.Count() > 0)
         {
-          return Ok(this._responseFactory.CreateSimpleChannelMessage($"Muntiny is it?! {channel_name} has already has a DM."));
+          return Ok(this._responseFactory.CreateSimpleChannelMessage($"Muntiny is it?! {existingGame.ChannelName} has already has a DM."));
         }
         else
         {
@@ -118,7 +117,7 @@ namespace BottleCapApi.Controllers
           this._context.DungeonMasters.Add(dm);
           await this._context.SaveChangesAsync();
 
-          return Ok(this._responseFactory.CreateSimpleChannelMessage($"Claimed! {channel_name} now belongs to <@{dm.SlackId}|{dm.SlackName}>", false));
+          return Ok(this._responseFactory.CreateSimpleChannelMessage($"Claimed! {existingGame.ChannelName} now belongs to <@{dm.SlackId}|{dm.SlackName}>", false));
         }
       }
     }
@@ -148,7 +147,7 @@ namespace BottleCapApi.Controllers
         // DM Check
         if (existingGame.DungeonMasters.Any(a => a.SlackId != user_id))
         {
-          return Ok(this._responseFactory.CreateSimpleChannelMessage($"Sneaky Bastard! You are not the DM of {channel_name}. Too many bottle caps can crash the economy!", false));
+          return Ok(this._responseFactory.CreateSimpleChannelMessage($"Sneaky Bastard! You are not the DM of {existingGame.ChannelName}. Too many bottle caps can crash the economy!", false));
         }
         // get username
         var userName = text.Trim();
@@ -220,7 +219,7 @@ namespace BottleCapApi.Controllers
         // DM Check
         if (existingGame.DungeonMasters.Any(a => a.SlackId != user_id))
         {
-          return Ok(this._responseFactory.CreateSimpleChannelMessage($"! You are not the DM of {channel_name}", false));
+          return Ok(this._responseFactory.CreateSimpleChannelMessage($"! You are not the DM of {existingGame.ChannelName}", false));
         }
         // validate
         if (!(text.First() == '<' && text.Last() == '>'))
@@ -278,7 +277,7 @@ namespace BottleCapApi.Controllers
                     type = "header",
                     text= new {
                         type= "plain_text",
-                        text= $":spinning-coin: Bottle caps for {channel_name} :spinning-coin:",
+                        text= $":spinning-coin: Bottle caps for {existingGame.ChannelName} :spinning-coin:",
                         emoji= true
                     }
                 },

@@ -9,7 +9,7 @@ namespace BottleCapApi.Slack
       return new { blocks, response_type = inChannel ? "in_channel" : "ephemeral" };
     }
 
-    public object GameNotFoundMessage(string channel_name) => this.CreateSimpleChannelMessage($"Welp! {channel_name} is not a game! Create a game first!", false)
+    public object GameNotFoundMessage(string channel_name) => this.CreateSimpleChannelMessage($"Welp! {channel_name} is not a game! Create a game first!", false);
 
   }
 }
