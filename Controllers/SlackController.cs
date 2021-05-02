@@ -16,9 +16,8 @@ namespace BottleCapApi.Controllers
   public class SlackController : ControllerBase
   {
     private readonly DatabaseContext _context;
-
-
     private readonly ResponseFactory _responseFactory;
+
 
     public SlackController(DatabaseContext context, ResponseFactory responseFactory)
     {
@@ -62,6 +61,29 @@ namespace BottleCapApi.Controllers
     }
 
 
+    [HttpPost("update/name")]
+    public async Task<ActionResult> UpdateDisplayName([FromForm] SlackRequest data)
+    {
+      Console.WriteLine(data);
+      var (team_id, channel_id, channel_name, text, _, _) = data;
+      // TODO: add DM check
+      // check if game already exists
+      var existingGame = _context
+        .Games
+        .FirstOrDefault(a => a.TeamId == team_id && a.SlackId == channel_id);
+      if (existingGame == null)
+      {
+        return Ok(this._responseFactory.GameNotFoundMessage(channel_name));
+      }
+      else
+      {
+        existingGame.ChannelName = text;
+        await _context.SaveChangesAsync();
+        return Ok(this._responseFactory.CreateSimpleChannelMessage($"Success! {channel_name} has been renamed to {existingGame.ChannelName}", false));
+
+      }
+    }
+
     // register game
     [HttpPost("claim/dm")]
     public async Task<ActionResult> ClaimDm([FromForm] SlackRequest data)
@@ -76,7 +98,7 @@ namespace BottleCapApi.Controllers
         .FirstOrDefault(a => a.TeamId == team_id && a.SlackId == channel_id);
       if (existingGame == null)
       {
-        return Ok(this._responseFactory.CreateSimpleChannelMessage($"Welp! {channel_name} is not a game! Create a game first!", false));
+        return Ok(this._responseFactory.GameNotFoundMessage(channel_name));
       }
       else
       {
@@ -96,7 +118,7 @@ namespace BottleCapApi.Controllers
           this._context.DungeonMasters.Add(dm);
           await this._context.SaveChangesAsync();
 
-          return Ok(this._responseFactory.CreateSimpleChannelMessage($"Claimed! {channel_name} now belongs to <@{dm.SlackId}|{dm.SlackName}>"));
+          return Ok(this._responseFactory.CreateSimpleChannelMessage($"Claimed! {channel_name} now belongs to <@{dm.SlackId}|{dm.SlackName}>", false));
         }
       }
     }
@@ -119,7 +141,7 @@ namespace BottleCapApi.Controllers
         .FirstOrDefaultAsync(a => a.TeamId == team_id && a.SlackId == channel_id);
       if (existingGame == null)
       {
-        return Ok(this._responseFactory.CreateSimpleChannelMessage($"Welp! {channel_name} is not a game! Create a game first!", false));
+        return Ok(this._responseFactory.GameNotFoundMessage(channel_name));
       }
       else
       {
@@ -141,13 +163,12 @@ namespace BottleCapApi.Controllers
             BottleCaps = 1,
           };
           _context.Players.Add(newPlayer);
-          await _context.SaveChangesAsync();
         }
         else
         {
           player.BottleCaps++;
-          await _context.SaveChangesAsync();
         }
+        await _context.SaveChangesAsync();
         return Ok(this._responseFactory.CreateSimpleChannelMessage($"Success! Bottle cap for {text}!"));
       };
     }
@@ -165,7 +186,7 @@ namespace BottleCapApi.Controllers
         .FirstOrDefaultAsync(a => a.TeamId == team_id && a.SlackId == channel_id);
       if (existingGame == null)
       {
-        return Ok(this._responseFactory.CreateSimpleChannelMessage($"Welp! {channel_name} is not a game! Create a game first!", false));
+        return Ok(this._responseFactory.GameNotFoundMessage(channel_name));
       }
 
 
@@ -246,7 +267,7 @@ namespace BottleCapApi.Controllers
         .FirstOrDefaultAsync(a => a.TeamId == team_id && a.SlackId == channel_id);
       if (existingGame == null)
       {
-        return Ok(this._responseFactory.CreateSimpleChannelMessage($"Welp! {channel_name} is not a game! Create a game first!", false));
+        return Ok(this._responseFactory.GameNotFoundMessage(channel_name));
       }
       else
       {
